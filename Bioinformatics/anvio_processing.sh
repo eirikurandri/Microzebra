@@ -1,5 +1,8 @@
 
-#Note this was done for all 5 co-assemblies
+#Note this was done for:
+#all 5 co-assemblies
+#Then the set of dereplicated genomes
+#and finally with the existing Zebrafish Fecal v1.0 MAG catalogue in the MGnify genomes resource 
 #create contigs database
 contig_list=$(cat ../'text_file_of_assembly_names.txt')
 echo "$contig_list"
@@ -20,7 +23,10 @@ for a in $contig_list
     echo -e "yay! annotations are done for "$a", please proceed to profiling"
 done
 
-#map metageomic reads back to assembly prior to profiling
+#prior to profiling map metageomic reads back to:
+#1.assembly,
+#2.or dereplicated MAGS
+#3.or the  Zebrafish Fecal v1.0 MAG catalogue
 FASTA_DIR=/path/to/unmapped/reads
 ASSEMBLY=/path/to/assembly/fasta
 WORK_DIR=/path/to/work/directory
