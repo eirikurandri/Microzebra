@@ -5,4 +5,4 @@ dRep dereplicate '/output/dir' -g '/path/to/all/MAGs' -pa 0.9 -sa 0.95 -cm large
 
 ###Now map the metagenomic reads from each sample back to the MAGs
 
-#Generate a contigs.db and profile.db as done at 
+#Generate a contigs.db and profile.db as done at the file "anvio_processing.sh"
