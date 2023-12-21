@@ -72,7 +72,7 @@ samtools depth -a $BAM/sorted/"$i".sorted.bam  |  awk '{sum+=$3} END { print "Av
 done
 
 #After getting out the unmapped reads we then created 5 co-assemblies using Megahit 
-
+#this is just a script for generating one co-assembly
 FASTA_DIR='path/to/appropriate/unmapped_fasta/files'
 WORK_DIR='path/to/appropriate/work/dir'
 R1=$(ls $FASTA_DIR/*1.fastq.gz | python -c 'import sys; print(",".join([x.strip() for x in sys.stdin.readlines()]))')
