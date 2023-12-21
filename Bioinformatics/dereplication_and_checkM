@@ -1,0 +1,8 @@
+###CheckM
+checkm lineage_wf -x fa '/path/to/MAG/fasta' '/output/dir/' --tab_table -f /checkM/bins_qa.tab -t 10
+###run DREP
+dRep dereplicate '/output/dir' -g '/path/to/all/MAGs' -pa 0.9 -sa 0.95 -cm larger --genomeInfo '/path/to/checkM/quality.csv -comp 50 -con 10
+
+###Now map the metagenomic reads from each sample back to the MAGs
+
+#Generate a contigs.db and profile.db as done at 
