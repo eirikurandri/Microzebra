@@ -58,8 +58,6 @@ nr_unmapped <- sum(meta$unmapped)
 #total_quality_pass
 nr_quality_pass <- sum(meta$rmad_rmdup_repair)
 
-#Per group average 
-
 av_numbs <- meta %>% 
   group_by(Sample_type) %>% 
   summarize(mean_qual=mean(Qubit.novogene),
@@ -67,11 +65,12 @@ av_numbs <- meta %>%
             mean_perc_qual=mean(rmad_rmdup_repair),
             mean_perc_host_qual=mean(unmapped))
 
-
+#Make function for plotting the basic stats
 plot_stuff <- function(col_name,y_name,just){
   meta %>% 
     group_by(Sample_type) %>% 
-    summarize(mean=mean({{col_name}}),sd=sd({{col_name}})) %>%     ggplot(aes(x=Sample_type,y=mean,fill=Sample_type)) +
+    summarize(mean=mean({{col_name}}),sd=sd({{col_name}})) %>%     
+    ggplot(aes(x=Sample_type,y=mean,fill=Sample_type)) +
     geom_bar(stat="identity",alpha=0.8) + 
     geom_text(aes(label=round(mean,2)),hjust=just,vjust=1.5,check_overlap = FALSE) +
     scale_fill_manual(values=anvi_palette) + 
@@ -87,7 +86,7 @@ c <- plot_stuff(perc_clean_unmapped,"% host reads",-0.5)
 d <- plot_stuff(Depth_zeb_map,"Zebrafish depth of coverage(X)")
 
 # add seome basic assembly stats
-assembly_stat <- read.delim("~/Documents/PhD/experiments/sampling_trial_for_host-vs-bacterial/Anvio/DREP_ALL/test_man/assembly_stat.txt")
+assembly_stat <- read.delim("assembly_stat.txt")
 assembly_stat$Sample_type <- factor(assembly_stat$Sample_type, levels=c("Whole gut", "Intestinal content", "Squeezed gut","Feces","Water"))
 #plot some assembly stats to add to the plot
 e <- ggplot(assembly_stat,aes(x=Sample_type,fill=Sample_type)) + geom_bar(aes(y=nr_contigs/1000),stat="identity") +   scale_fill_manual(values=anvi_palette) + labs(y= "Number contigs(Kb)") +
@@ -104,11 +103,30 @@ geom_bar(aes(y=GC_content),stat="identity") + labs(y="% GC-content") +
 
 #make a lovely large plot
 #pdf("sample_processing.pdf",width=20,height=7)
-a +b +c + plot_spacer() + e +f +g + plot_layout(nrow = 1)  & 
-  coord_flip() & 
-  scale_x_discrete(limits=rev(levels(meta$Sample_type))) & 
-  theme(axis.text.y = element_blank(),
-        axis.title.y = element_blank(),
-        legend.position = "none", 
-        axis.ticks.y = element_blank(),
-        axis.title.x = element_text(size=12, face="bold")) 
+#a +b +c + plot_spacer() + e +f +g + plot_layout(nrow = 1)  & 
+#coord_flip() & 
+#scale_x_discrete(limits=rev(levels(meta$Sample_type))) & 
+#theme(axis.text.y = element_blank(),
+#axis.title.y = element_blank(),
+#       legend.position = "none", 
+#        axis.ticks.y = element_blank(),
+#       axis.title.x = element_text(size=12, face="bold")) 
+#Basic stats done
+#Now compare quality of MAGs among sample types
+MAG_qual_stat <- read.csv("MAG_qual_stat.csv")
+#set order
+MAG_qual_stat$Sample_type <- factor(MAG_qual_stat$Sample_type, levels=c("Whole gut", "Intestinal content", "Squeezed gut","Feces","Water"))
+
+#tidy time
+plot_stats <- pivot_longer(MAG_qual_stat,3:7,values_to = "Value",names_to = "type")
+plot_stats <- plot_stats %>% mutate(two=ifelse(type %in% c("nr_actual","nr_expected"),"Actual vs expected nr MAGs","high quality vs lower quality MAGS")) %>% filter(type!="perc_exp")
+#g
+
+nr_mag_compare <- ggplot(plot_stats) + geom_point(aes(x=Sample_type,y=Value,color=Sample_type,shape=type),size=7,alpha=0.8) + ggforce::facet_row(~two,scales="free_x",space="free") + 
+theme_cowplot() + 
+theme(strip.background = element_blank(),
+      strip.text = element_text(size=12,face="bold")) +
+scale_color_manual(values = anvi_palette) + 
+scale_shape_manual(name="",labels=c("Nr actual MAGs","Nr expected MAGs","Nr high quality MAGs","Nr lower quality MAGs"),values = c(19,15,17,18)) +  
+  scale_y_continuous(breaks=scales::pretty_breaks(n=12)) + 
+  labs(y="Number of MAGs")
