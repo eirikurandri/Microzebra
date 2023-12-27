@@ -1,0 +1,6 @@
+Assembly,Sample_type,nr_expected,nr_actual,perc_exp,nr_high,nr_rest
+WG,Whole gut,2,2,1,1,1
+DG,Intestinal content,13,8,0.615384615,5,3
+SZ,Squeezed gut,25,16,0.64,11,5
+PW,Feces,24,23,0.958333333,12,11
+W,Water,49,28,0.571428571,14,14
