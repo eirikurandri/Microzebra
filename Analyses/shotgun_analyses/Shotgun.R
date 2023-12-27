@@ -170,3 +170,178 @@ ag_cov <- read.csv("mean_coverage.txt",sep="")
 rownames(mag_cov) <- mag_cov$bins
 mag_cov <- mag_cov %>% select(-bins)
 mag_sum <- read.delim("SUMMARY/bins_summary.txt")
+#make data frame for the size
+size <- mag_sum %>% select(bins,total_length) %>% rename(hgnc_symbol=bins,transcript_length=total_length)
+#tpm_normalisation
+mag.tmp <- NormalizeTPM(mag_cov,tr_length = size,scale = 1e+06)
+#Normalising done
+#Create tax table
+tax_table <- mag_sum[,c(1,8:14)]
+rownames(tax_table) <- tax_table$bins 
+taxa_table <- tax_table %>% 
+  select(-bins) %>% mutate_all(na_if,"")
+#read into phyloseq the normalised mag abundances
+rownames(meta) <- meta$exp_ID 
+meta <- meta %>% select(-exp_ID)
+#Make phyloseq object
+py_mag <- phyloseq(otu_table(as.matrix(mag.tmp),taxa_are_rows=TRUE),
+                   tax_table(as.matrix(taxa_table)),
+                   sample_data(meta))
+#Lovely
+#Make a quick barplot to get the genus level overview
+#This is however much better viewed using anvi-interactive as per figure 3,
+#but we just do this to get an overview and an idea of whats up and to see the most abundant MAGs among the sample types
+barplot_genus <- plot_bar(py_mag,"Sample_ID",fill="t_genus") + 
+  geom_col(aes(color=t_genus),position = "stack",show.legend = FALSE) + 
+  scale_fill_manual(values=childish,name="Genus") + 
+  scale_color_manual(values=childish)+ 
+  ggforce::facet_row(~Sample_type, scales="free_x",space = "free") + 
+  guides(fill=guide_legend(ncol = 1)) + 
+  theme_cowplot() + 
+  theme(axis.text.x = element_text(angle = 90,face = "bold"),
+        axis.text.y = element_text(face="bold",size = 12),
+        axis.title = element_text(face="bold",size = 12),
+        strip.text = element_text(face="bold",size=12),
+        strip.background.x = element_blank(),
+        legend.title = element_text(face="bold",size = 12),
+        legend.text = element_text(face="bold",size=12),
+        panel.border = element_blank())
+Now have a look a the top taxa across the dataset and how their abundances are distributed
+N <- 30
+barplot(sort(taxa_sums(py_mag), TRUE)[1:N]/nsamples(py_mag), las=2,col="#9C640C")+ title(main="Cumulative fractional abundance of top 30 in thesamples",ylab = "Fractional abundance")
+
+#the fololowing the MAGs that make up the most of the dataset
+#Here are the ones which make up more than 5 % 
+"WG_ZS_MAG_00001" "SZ_ZS_MAG_00001" "DG_ZS_MAG_00008"
+#here are the ones which make up more than 1%
+Top10 <- c("WG_ZS_MAG_00001",
+           "SZ_ZS_MAG_00001",
+           "DG_ZS_MAG_00008",
+           "PW_ZS_MAG_00004", 
+           "PW_ZS_MAG_00008",
+           "DG_ZS_MAG_00003",
+           "SZ_ZS_MAG_00011", 
+           "SZ_ZS_MAG_00009",
+           "DG_ZS_MAG_00001",
+           "W_ZS_MAG_00013")
+
+#function to get an the individual abundances
+mean_ab <- function(MAG) {
+  ab <- abundances %>% 
+    group_by(Sample_type) %>%
+    filter(OTU==MAG) %>% 
+    summarise(mean=mean(Abundance)*100)
+  ab$mean <- paste(round(ab$mean,digits=3),"%")
+  print(ab)
+  }
+#for loop to get all the mean abundances 
+result_list <- data.frame()
+
+for (name in Top10) {result <- mean_ab(name)
+print(result)
+result_list <- c(result_list,result,name)}
+merged_result <- do.call(rbind,result_list)
+print(merged_result)
+#yay now lets make an oridation plot
+GP.ord <- ordinate(py_mag,"PCoA","bray")
+#plot and color by sample types (we also make a plot where we color a gradient of host filtered reads
+ordi.mag <- plot_ordination(py_mag,GP.ord,type="samples",color="Sample_type") + 
+  geom_point(size=7) +
+   theme_cowplot() +
+  scale_color_manual(values=anvi_palette) +
+  theme(axis.text.x = element_text(angle = 90,face = "bold"),
+        axis.text.y = element_text(face="bold",size = 12),
+        axis.title = element_text(face="bold",size = 12),
+        strip.text = element_text(face="bold",size=12),
+        strip.background.x = element_blank(),
+        legend.title = element_text(face="bold",size = 12),
+        legend.text = element_text(face="bold",size=12),
+        panel.border = element_blank(),
+        axis.line = element_line(size=1,color="black"))
+#PERMANOVA for sample types
+adonis2(t(as.data.frame(py_mag@otu_table))~Sample_type,data=data.frame(as.vector(py_mag@sam_data)),method="bray")
+
+#Now lets compare the MAG abundances to the 16S abundances on the genus level
+#If you follow the 16S code you will see an object called "physeq_norm"
+#Set that to the object physeq_16 so we can make a little comparison
+physeq_16S <- physeq_norm
+#merge taxa on the genus level in the mag dataset
+py_mag_genus <- tax_glom(py_mag,taxrank = "t_genus",NArm = FALSE)
+#get the top 10 genera from the MAG dataset
+TopNOTUs = names(sort(taxa_sums(py_mag_genus),TRUE)[1:10])
+physeq_10_mag= prune_taxa(TopNOTUs, py_mag_genus)
+#get the top 10 genera from the 16S dataset
+TopNOTUs_16S = names(sort(taxa_sums(physeq_16S),TRUE)[1:10])
+physeq_10_16S= prune_taxa(TopNOTUs_16S, physeq_16S) 
+#remove the two samples from the 16S dataset that failed shotgun sequencing
+physeq_10_16S <- physeq_10_16S %>% subset_samples(!Sample_ID %in% c("W_002","SB_002"))
+top10_mag <- data.frame(physeq_10_mag@tax_table)
+top10_16S <- data.frame(physeq_10_16S@tax_table)
+common_mag <- top10_mag %>% filter(t_genus %in% top10_16S$Genus)
+common_16S <- top10_16S %>% filter(Genus %in% top10_mag$t_genus)
+filt_mag <- rownames(common_mag)
+filt_16S <- rownames(common_16S)  
+physeq_common_mag <- prune_taxa(filt_mag,physeq_10_mag)
+physeq_common_16S <- prune_taxa(filt_16S,physeq_10_16S)
+common_mag_ab <- data.frame(t(data.frame(physeq_common_mag@otu_table)))
+common_16S_ab <- data.frame(t(data.frame(physeq_common_16S@otu_table)))
+common_16S_ab$Sample_ID <- rownames(common_16S_ab)
+#get them all into a metadata thingy
+meta_new <- data.frame(py_mag_genus@sam_data)
+together <- cbind(common_mag_ab,meta_new) 
+together <- merge(together,common_16S_ab,by="Sample_ID")
+#Now sort the dataframe in the way that we want and first define the which belong to the same genus
+Cetobacterium <- c("ASV_1","WG_ZS_MAG_00001")
+Aeromonas <- c("ASV_3","SZ_ZS_MAG_00001")
+Pseudomonas <- c("ASV_32","PW_ZS_MAG_00020")
+Ideonella <- c("ASV_7","PW_ZS_MAG_00004")
+#plot and compare the abundances
+compare_ab <- together %>% 
+  select(c(filt_16S,filt_mag,Sample_type,Sample_ID)) %>%
+  pivot_longer(cols = 1:10,values_to = "abundances",names_to = "taxa_ID") %>% 
+  mutate(origin = ifelse(taxa_ID %in% filt_16S,"16S","Shotgun")) %>%
+  mutate(genus=ifelse(taxa_ID %in% Cetobacterium,"Cetobacterium",
+                      ifelse(taxa_ID %in% Aeromonas,"Aeromonas",
+                             ifelse(taxa_ID %in% Ideonella, "Ideonella",
+                                    ifelse(taxa_ID %in% Pseudomonas,"Pseudomonas","ZOR0006"))))) %>% 
+  group_by(genus,origin,Sample_type) %>%
+  filter(genus!="Ideonella") %>%
+  summarise(mean=mean(abundances)) %>% 
+  pivot_wider(names_from = "origin",values_from = "mean") %>%
+  ungroup() %>%
+  ggplot(aes(x=log2(`16S`),y=log2(Shotgun),color=genus,group=1)) + 
+  geom_point(size=7) + 
+  #geom_smooth(se=FALSE,method = "lm",linetype="dashed") +
+  geom_abline(slope=1,intercept=0) +
+  #coord_equal() +
+  #xlim(-15,0) +
+  #ylim(-15,0) +
+  stat_cor(method = "spearman") + 
+  scale_color_manual(values = childish) +
+    theme_cowplot() +
+  ggforce::facet_row(~Sample_type,space="free")  +
+  theme(axis.text.x = element_text(angle = 90,face = "bold"),
+        axis.text.y = element_text(face="bold",size = 12),
+        strip.text = element_text(face="bold",size=12),
+        axis.title = element_text(face="bold",size=12),
+        strip.background.x = element_blank(),
+        legend.title = element_text(face="bold",size = 12),
+        legend.text = element_text(face="bold",size=12),
+        panel.border = element_blank()) +
+  labs(x="log2 relavtive abundance  16S",y="log2 relavtive abundance shotgun")
+#Awesome a great relationship. We chose log2 transformation of the relative abundances to give the lower abundance taxa
+#a chance
+#Ok time to compare the functional data among sample types
+MAG_REF.GENE.CALLS <- read.delim("MAG_REF-GENE-CALLS.txt")
+MAG_REF.GENE.COVERAGES <- read.delim("MAG_REF-GENE-COVERAGES.txt")
+gene_coverages <- MAG_REF.GENE.COVERAGES
+#read in Pfam functions
+Pfam_functions <-read.delim("Pfam_functions.txt")
+#read in COG data
+COG_CAT <- read.delim("COG_CAT.txt")
+#read in the mapping data for normalisation of gene coverage data
+default <- read.delim("default.txt")
+
+
+
+
