@@ -130,3 +130,43 @@ scale_color_manual(values = anvi_palette) +
 scale_shape_manual(name="",labels=c("Nr actual MAGs","Nr expected MAGs","Nr high quality MAGs","Nr lower quality MAGs"),values = c(19,15,17,18)) +  
   scale_y_continuous(breaks=scales::pretty_breaks(n=12)) + 
   labs(y="Number of MAGs")
+#Make rarefaction curves of ORFs among the samples
+#Read in the ORF coverage data and tidy it a bit
+gene_cov <- read.csv("MAG_REF-GENE-COVERAGES.txt",sep="")
+rownames(gene_cov) <- gene_cov$key
+gene_cov <- gene_cov %>% select(-key)
+gene_cov <- as.matrix(gene_cov)
+class(gene_cov) <- "integer"
+#Plot rarefaction curves
+rarecurve(t(gene_cov), step = 50000, sample = gene.raremax, col = "black", cex = 0.6, label = FALSE, xlab = "Contig Coverage", ylab = "Gene calls (ORFs)")
+#Lovely looks like we expected now lets get the data into a tidy frame so we can plot
+rare_curve <- rarecurve(t(gene_cov), step = 50000, col = "black", cex = 0.6, label = FALSE, xlab = "Contig Coverage", ylab = "Gene calls (ORFs)",tidy = TRUE)
+#Now we add a grouping variable to the rare_curve data frame based on the sample and plot
+rare_mod <- rare_curve %>% 
+  mutate(sample_type=str_split(Site,"_",n=2,simplify = TRUE)[,1]) %>% 
+  mutate(sample_type= ifelse(Site=="merged_SZ_002","SZ",sample_type)) %>%
+  mutate(SAMPLE_TYPE=ifelse(sample_type=="W","Water",ifelse(sample_type=="SZ","Squeezed gut",ifelse(sample_type=="WG","Whole gut",ifelse(sample_type=="DG","Intestinal content","Feces"))))) %>%
+  mutate(SAMPLE_TYPE=factor(SAMPLE_TYPE,levels=c("Whole gut", "Intestinal content", "Squeezed gut","Feces","Water"))) %>%
+  ggplot() + geom_line(aes(x=Sample,y=Species,group=Site,color=SAMPLE_TYPE),size=2) 
+
+#plot abd add some aesthetics to it
+#and print if wanted
+#pdf("ORF_rarefy.pdf",width=9,height=6)
+rare_mod + 
+  theme_cowplot()+
+  scale_color_manual(values=anvi_palette,name="Sample Type") +
+  labs(x="Read depth",y="Gene calls(ORFs)") +
+  theme(axis.line = element_line(size=1,color="black"),
+        axis.title = element_text(size = 16,face="bold"),
+        axis.text = element_text(size = 12,face="bold"),
+        legend.position = c(0.80,0.20),
+        legend.text = element_text(face="bold",size=14),
+        legend.title = element_text(face="bold",size=16))
+#dev.off()
+#rarefaction analyses done
+#Now its time to normalise the MAG abundance based on MAG coverage and MAG size
+#Load in MAG coverage data and summary
+ag_cov <- read.csv("mean_coverage.txt",sep="")
+rownames(mag_cov) <- mag_cov$bins
+mag_cov <- mag_cov %>% select(-bins)
+mag_sum <- read.delim("SUMMARY/bins_summary.txt")
