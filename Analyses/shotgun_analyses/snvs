@@ -1,0 +1,18 @@
+#Anvio was used to generate and view the SNV variability
+anvi-gen-variability-profile -c DREP.CONTIGS.db \
+                             -p DREP_SAMPLES_MERGED/PROFILE.db \
+                             -C MAG \
+                             -b WG_ZS_MAG_00001 \
+                             --min-coverage-in-each-sample 10\
+                             --include-split-names \
+                             --quince-mode \
+                             -o variability.txt
+
+anvi-script-snvs-to-interactive variability.txt -o ceto_var
+
+anvi-interactive --profile NWS_CL1_ceto_var/profile.db \
+                 --tree NWS_CL1_ceto_var/tree.txt \
+                 --view-data NWS_ceto_var/view.txt \
+                 --manual
+#Add some metadata for plotting and such lovelyness
+anvi-import-misc-data meta_sheet_final.txt -p NWS_CL1_ceto_var/profile.db --target-data-table layers --just-do-it
