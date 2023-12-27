@@ -342,6 +342,283 @@ COG_CAT <- read.delim("COG_CAT.txt")
 #read in the mapping data for normalisation of gene coverage data
 default <- read.delim("default.txt")
 
+#lets have a look at the COG categries
+#Keep only the genes that have an assigned COG_CATEGORY
+gene_coverages <- gene_coverages %>% filter(key %in% COG_CAT$gene_callers_id)
+#clear up for phyloseq and normalisation
+rownames(gene_coverages) <- gene_coverages$key
+gene_coverages <- gene_coverages %>% select(-key)
+#gene cov ready
+#now get the COG data ready
+rownames(COG_CAT) <- COG_CAT$gene_callers_id
+COG_CAT <- COG_CAT %>% select(-gene_callers_id)
+COG_CAT$FUNCTION <- COG_CAT$function.
+COG_CAT <- COG_CAT %>% select(-function.)
+#Here we keep only the first function assigned to the gene
+#This seems to be a 'user' choice as far as I can ascertain... 
+COG_CAT <- COG_CAT %>% mutate(FUNCTION=str_split(FUNCTION,"!!!",simplify = TRUE)[,1],
+                   accession=str_split(accession,"!!!",simplify=TRUE)[,1])
+#COG data ready
+#normalise gene coverages
+#make sure that the deviding is correct
+rep_total <- rep(default$total_reads_mapped,each=nrow(gene_coverages))
+gene_cov_norm <- gene_coverages/rep_total
+gene_cov_norm <- gene_cov_norm * 1000000
+#Make phyloseq object
+phy_cog <- phyloseq(otu_table(as.matrix(gene_cov_norm),taxa_are_rows=TRUE),
+                   tax_table(as.matrix(COG_CAT)),
+                   sample_data(meta))
+#Make venn diagram
+venn_cog <- ps_venn(phy_cog,group="Sample_type",fill=anvi_palette,alpha=0.8)
+#make venn diagram a data_frame to extract and plot further
+lol <- ps_venn(phy_cog,group="Sample_type",plot=FALSE)
+#Focus in on the three different fractions, just for fun create separe data.frames for those
+shared_all <- data.frame(lol$`Whole gut__Intestinal content__Squeezed gut__Feces__Water`)
+shared_wo_wg <- data.frame(lol$`Intestinal content__Squeezed gut__Feces__Water`) 
+pw_w_share <- data.frame(lol$`Feces__Water`)
+#focus in on the different fractions create seperate phyloseq objects for them
+pw_w_func <- prune_taxa(pw_w_share$lol.Feces__Water,phy_cog)
+wo_wg_func <- prune_taxa(shared_wo_wg$lol..Intestinal.content__Squeezed.gut__Feces__Water.,phy_cog)
+shared_all_func <- prune_taxa(shared_all$lol..Whole.gut__Intestinal.content__Squeezed.gut__Feces__Water.,phy_cog)
+#shared poop water fraction
+w_frac <- sample_sums(pw_w_func)/sample_sums(phy_cog)*100
+dw_frac <- data.frame(w_frac)
+#shared among all except whole gut samples
+wo_wg_frac <- sample_sums(wo_wg_func)/sample_sums(phy_cog)*100
+dwo_wg_frac <- data.frame(wo_wg_frac)
+#core fraction shared among all samples
+shared_frac <- sample_sums(shared_all_func)/sample_sums(phy_cog)*100
+dshared_frac <- data.frame(shared_frac)
+#get sample_types from meta for plotting
+meta_comp_frac <- meta %>% select(Sample_type) 
+meta_comp_frac$names <- rownames(meta_comp_frac)
+meta_comp_frac <- meta_comp_frac %>% arrange(names)
+#make new data frame for plotting the three fractions and make tidy
+comp_frac <- cbind(dw_frac,dwo_wg_frac,dshared_frac,meta_comp_frac)
+#lets first extract the means 
+comp_frac <- pivot_longer(comp_frac,1:3,names_to="type",values_to = "frac")
+comp_frac$Sample_type <- factor(comp_frac$Sample_type, levels=c("Whole gut", "Intestinal content", "Squeezed gut","Feces","Water"))
+#lets first extract the means 
+comp_frac %>% group_by(Sample_type,type) %>% summarise(mean=mean(frac),sd=sd(frac))
+#Then make plot
+frac_cog <- ggplot(comp_frac) +
+  geom_point(aes(x=type,y=frac/100,color=Sample_type),size=5,position = position_dodge(width = 2),alpha=0.5) +
+  theme_cowplot() +
+  theme(strip.text = element_blank()) +
+  ggforce::facet_row(~type,scales = "free",space="free") + 
+  scale_color_manual(values = anvi_palette) +
+  scale_y_continuous(labels = scales::percent,breaks = scales::pretty_breaks(n=8)) +
+  labs(y="% of total normailised gene coverage",x="")
+#happy
+#print to pdf if wished
+#pdf("frac_cog.pdf",width=10,height=4)
+frac_cog
+#dev.off()
+#Lets see if removing functions that are higher in coverage in the water than the fecal samples
+#does something
+
+#get the mean coverage of genes in Water and Feces
+mean_abundance_water <- rowMeans(otu_table(phy_cog)[, sample_data(phy_cog)$Sample_type == "Water"])
+mean_abundance_feces <- rowMeans(otu_table(phy_cog)[, sample_data(phy_cog)$Sample_type == "Feces"])
+#make list of gene calls to keep in the phyloseq object
+#that is genes with higher coverage in the fecal samples compared ot the water samples
+taxa_to_remove <- names(which(mean_abundance_water < mean_abundance_feces))
+#make phyloseq object with gene calls we want to keep
+phy_cog_filt <- prune_taxa(taxa_to_remove,phy_cog)
+#make_venn_diagram of these functions
+venn_cog_post <- ps_venn(phy_cog_filt,group="Sample_type",fill=anvi_palette,alpha=0.8)
+#make the venn diagrem a non plot object so we can see the new shared functions
+ps_venn_hcw_fil <- ps_venn(phy_cog_filt,group="Sample_type",plot = FALSE)
+
+#now repeat the same analysis of the different fractions after removing all the shit.
+shared_all_post <- data.frame(ps_venn_hcw_fil$`Whole gut__Intestinal content__Squeezed gut__Feces__Water`)
+shared_wo_wg_post <- data.frame(ps_venn_hcw_fil$`Intestinal content__Squeezed gut__Feces__Water`) 
+pw_w_share_post <- data.frame(ps_venn_hcw_fil$`Feces__Water`)
+
+pw_w_func_post <- prune_taxa(pw_w_share_post$ps_venn_hcw_fil.Feces__Water,phy_cog_filt)
+wo_wg_func_post <- prune_taxa(shared_wo_wg_post$ps_venn_hcw_fil..Intestinal.content__Squeezed.gut__Feces__Water.,phy_cog_filt)
+shared_all_func_post <- prune_taxa(shared_all_post$ps_venn_hcw_fil..Whole.gut__Intestinal.content__Squeezed.gut__Feces__Water.,phy_cog_filt)
+
+#shared poop water fraction
+w_frac_post <- sample_sums(pw_w_func_post)/sample_sums(phy_cog)*100
+dw_frac_post <- data.frame(w_frac_post)
+#shared among all except whole gut samples
+wo_wg_frac_post <- sample_sums(wo_wg_func_post)/sample_sums(phy_cog)*100
+dwo_wg_frac_post <- data.frame(wo_wg_frac_post)
+#core fraction shared among all samples
+shared_frac_post <- sample_sums(shared_all_func_post)/sample_sums(phy_cog)*100
+dshared_frac_post <- data.frame(shared_frac_post)
+
+#no need to do anything to the metadata its already up there and called meta_comp_frac
+
+#make new data frame for plotting the three fractions and make tidy
+comp_frac <- cbind(dw_frac_post,dwo_wg_frac_post,dshared_frac_post,meta_comp_frac)
+#lets first extract the means 
+comp_frac <- pivot_longer(comp_frac,1:3,names_to="type",values_to = "frac")
+comp_frac$Sample_type <- factor(comp_frac$Sample_type, levels=c("Whole gut", "Intestinal content", "Squeezed gut","Feces","Water"))
+#lets first extract the means 
+comp_frac %>% group_by(Sample_type,type) %>% summarise(mean=mean(frac),sd=sd(frac))
+
+#Then make plot
+frac_cog_post <- ggplot(comp_frac) +
+  geom_point(aes(x=type,y=frac/100,color=Sample_type),size=5,position = position_dodge(width = 2),alpha=0.5) +
+  theme_cowplot() +
+  theme(strip.text = element_blank()) +
+  ggforce::facet_row(~type,scales = "free",space="free") + 
+  scale_color_manual(values = anvi_palette) +
+  scale_y_continuous(labels = scales::percent,breaks = scales::pretty_breaks(n=8)) +
+  labs(y="% of total normailised gene coverage",x="")
+###Now we make a venn diagram from the gene calls that are present only in the Top10_mags
+#first read in all 10 gene_calls files for the MAGS
+file_names <- c("WG_ZS_MAG_00001-gene_calls.txt", "SZ_ZS_MAG_00001-gene_calls.txt", "DG_ZS_MAG_00008-gene_calls.txt", 
+                "PW_ZS_MAG_00004-gene_calls.txt", "PW_ZS_MAG_00008-gene_calls.txt", "DG_ZS_MAG_00003-gene_calls.txt", 
+                "SZ_ZS_MAG_00011-gene_calls.txt", "SZ_ZS_MAG_00009-gene_calls.txt", "DG_ZS_MAG_00001-gene_calls.txt", "W_ZS_MAG_00013-gene_calls.txt")
+object_names <- c("WG_ZS_MAG_00001.gene_calls", "SZ_ZS_MAG_00001.gene_calls", "DG_ZS_MAG_00008.gene_calls", 
+                  "PW_ZS_MAG_00004.gene_calls", "PW_ZS_MAG_00008.gene_calls", "DG_ZS_MAG_00003.gene_calls", 
+                  "SZ_ZS_MAG_00011.gene_calls", "SZ_ZS_MAG_00009.gene_calls", "DG_ZS_MAG_00001.gene_calls","W_ZS_MAG_00013.gene_calls")
+data_list <- list()
+for (i in seq_along(file_names)) {
+  directory_name <- gsub("-.*", "", file_names[i])
+  full_path <- file.path("~/Documents/PhD/experiments/sampling_trial_for_host-vs-bacterial/Anvio/DREP_ALL/SUMMARY/bin_by_bin", directory_name, file_names[i])
+  data_list[[object_names[i]]] <- read.delim(full_path, header = TRUE)
+}
+
+#get the files in into the environment
+list2env(data_list, envir = .GlobalEnv)
+
+#lets merge them into a single data.frame of tons of functions
+top_mag_gene_calls <- 
+  rbind(WG_ZS_MAG_00001.gene_calls,SZ_ZS_MAG_00001.gene_calls,DG_ZS_MAG_00008.gene_calls, PW_ZS_MAG_00004.gene_calls, PW_ZS_MAG_00008.gene_calls, DG_ZS_MAG_00003.gene_calls, SZ_ZS_MAG_00011.gene_calls, SZ_ZS_MAG_00009.gene_calls, DG_ZS_MAG_00001.gene_calls,W_ZS_MAG_00013.gene_calls)
+#read back in the gene calls data frame for the entire dataset
+COG_CAT <- read.delim("COG_CAT.txt")
+COG_CAT_merge <- COG_CAT %>% filter(gene_callers_id %in% top_mag_gene_calls$gene_callers_id)
+cov_gene_top10 <- MAG_REF.GENE.COVERAGES %>% filter(key %in% COG_CAT_merge$gene_callers_id)
+#clear up for phyloseq and normalisation
+rownames(cov_gene_top10) <- cov_gene_top10$key
+cov_gene_top10 <- cov_gene_top10 %>% select(-key)
+rownames(COG_CAT_merge) <- COG_CAT_merge$gene_callers_id
+COG_CAT_merge <- COG_CAT_merge %>% select(-gene_callers_id)
+COG_CAT_merge$FUNCTION <-COG_CAT_merge$function.
+COG_CAT_merge <- COG_CAT_merge %>% select(-function.)
+#Here we keep only the first function assigned to the gene
+COG_CAT_merge <- COG_CAT_merge %>% mutate(FUNCTION=str_split(FUNCTION,"!!!",simplify = TRUE)[,1],
+                   accession=str_split(accession,"!!!",simplify=TRUE)[,1])
+#COG data ready
+#normalise gene coverages
+#make sure that the deviding is correct
+rep_total <- rep(default$total_reads_mapped,each=nrow(cov_gene_top10))
+
+gene_cov_norm_top10 <- cov_gene_top10/rep_total
+gene_cov_norm_top10 <- gene_cov_norm_top10 * 1000000
+
+phy_cog_top10 <- phyloseq(otu_table(as.matrix(gene_cov_norm_top10),taxa_are_rows=TRUE),
+                   tax_table(as.matrix(COG_CAT_merge)),
+                   sample_data(meta))
+
+top10_venn <- ps_venn(phy_cog_top10,group="Sample_type",fill=anvi_palette)
+top10_noplot <- ps_venn(phy_cog_top10,group="Sample_type",fill=anvi_palette,plot = FALSE)
+
+#Lets have a look at the functional proportions of these guys from the total
+
+shared_all_top10 <- data.frame(top10_noplot$`Whole gut__Intestinal content__Squeezed gut__Feces__Water`)
+shared_wo_wg_top10 <- data.frame(top10_noplot$`Intestinal content__Squeezed gut__Feces__Water`) 
+pw_w_share_top10 <- data.frame(top10_noplot$`Feces__Water`)
+
+pw_w_func_top10 <- prune_taxa(pw_w_share_top10$top10_noplot.Feces__Water,phy_cog_top10)
+wo_wg_func_top10 <- prune_taxa(shared_wo_wg_top10$top10_noplot..Intestinal.content__Squeezed.gut__Feces__Water.,phy_cog_top10)
+shared_all_func_top10 <- prune_taxa(shared_all_top10$top10_noplot..Whole.gut__Intestinal.content__Squeezed.gut__Feces__Water.,phy_cog_top10)
+
+#shared poop water fraction
+w_frac_top10 <- sample_sums(pw_w_func_top10)/sample_sums(phy_cog)*100
+dw_frac_top10 <- data.frame(w_frac_top10)
+#shared among all except whole gut samples
+wo_wg_frac_top10 <- sample_sums(wo_wg_func_top10)/sample_sums(phy_cog)*100
+dwo_wg_frac_top10 <- data.frame(wo_wg_frac_top10)
+#core fraction shared among all samples
+shared_frac_top10 <- sample_sums(shared_all_func_top10)/sample_sums(phy_cog)*100
+dshared_frac_top10 <- data.frame(shared_frac_top10)
+
+
+comp_frac <- cbind(dw_frac_top10,dwo_wg_frac_top10,dshared_frac_top10,meta_comp_frac)
+#lets first extract the means 
+comp_frac <- pivot_longer(comp_frac,1:3,names_to="type",values_to = "frac")
+comp_frac$Sample_type <- factor(comp_frac$Sample_type, levels=c("Whole gut", "Intestinal content", "Squeezed gut","Feces","Water"))
+#lets first extract the means 
+comp_frac %>% group_by(Sample_type,type) %>% summarise(mean=mean(frac),sd=sd(frac))
+
+#Then make plot
+frac_cog_top10 <- ggplot(comp_frac) +
+  geom_point(aes(x=type,y=frac/100,color=Sample_type),size=5,position = position_dodge(width = 2),alpha=0.5) +
+  theme_cowplot() +
+  theme(strip.text = element_blank()) +
+  ggforce::facet_row(~type,scales = "free",space="free") + 
+  scale_color_manual(values = anvi_palette) +
+  scale_y_continuous(labels = scales::percent,breaks = scales::pretty_breaks(n=8)) +
+  labs(y="% of total normailised gene coverage",x="")
+
+#lovely now we filter out the ideonella whihc is the one that is in higest abundance in the water samples
+#And barely present in the others and see what effect that has. 
 
 
 
+#find_table_to_prune away the ideonella
+taxa_temove <- PW_ZS_MAG_00004.gene_calls$gene_callers_id
+taxa_keep <- top_mag_gene_calls %>% filter(!gene_callers_id %in% taxa_temove) %>% select(gene_callers_id)
+taxa_keep <- as.character(taxa_keep$gene_callers_id)
+#Lets see how it looks for the top10
+phy_cog_top10_wo <- prune_taxa(taxa_keep,phy_cog_top10)
+top10_venn_ideo <- ps_venn(phy_cog_top10_wo,group="Sample_type",fill=anvi_palette)
+#and then overall
+
+taxa_keep <- COG_CAT %>% filter(!gene_callers_id %in% taxa_temove) %>% select(gene_callers_id)
+taxa_keep <- as.character(taxa_keep$gene_callers_id)
+
+phy_cog_full_ideo <- prune_taxa(taxa_keep,phy_cog)
+full_venn_ideo <- ps_venn(phy_cog_full_ideo,group="Sample_type",fill=anvi_palette)
+
+#I will write some functions for this whole mess at some point
+#but anyways we do the same for Pfam functions as we have done with the above with slightly modified code 
+
+#OK venn stuff done
+#Now lets compare to EBI
+#get total % mapped unmapped to this and ebi´s reference
+mean_perc_map <- meta %>% 
+  summarise(mean_drep=mean(perc_map_DREP),
+                                    mean_ebi=mean(perc_map_EBI),
+                                    mean_ori=mean(perc_ori))
+per_type_mean_perc_map <- meta %>% 
+  group_by(Sample_type) %>%  
+  summarise(mean_drep=mean(perc_map_DREP),
+            mean_ebi=mean(perc_map_EBI),
+            sd_drep=sd(perc_map_DREP),
+            sd_ebi=sd(perc_map_EBI)
+            )
+#Lovely lets put this into a lovely biorender figure
+
+#finally lets make a correlation of number of variable positions reported per sample and correlate that to 
+#the coverage of the Cetobacterium MAG.
+
+read.delim("meta_sheet_final.txt")
+
+#read in departure from consensus data
+read.delim("view.txt")
+
+#Wrangle a bit
+var <- pivot_longer(view,cols=2:16) %>% 
+  filter(value!=0) %>% 
+  select(-contig) %>% 
+  group_by(name) %>% 
+  summarize(n()) %>%
+  mutate(n_pos=`n()`) %>%
+  select(-`n()`)
+#make final frame
+final_var <- meta_sheet_final %>% 
+  arrange(samples) %>%  
+  cbind(.,var)
+
+#cor_test
+cor.test(final_var$n_pos, final_var$Ceto_coverage)
+
+#plot
+ggplot(final_var,aes(x=n_pos,y=Ceto_coverage)) + geom_point() + stat_cor(method = "pearson") 
+#yay
