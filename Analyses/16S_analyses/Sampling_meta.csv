@@ -1,0 +1,21 @@
+Sample_ID,Sample_type,fish_weight(g),fish_lenght,fish_sex,post_dissection_weigth,amount_shield,tank_no,Who_sampled,Qubit-novogene,Comments
+WG_001,Whole gut,0.92,3.8,F,0.63,500ul,36,E,116,pregnant female
+WG_002,Whole gut,0.49,3.5,M,0.413,500ul,36,E,64.2,spotted phenotype
+WG_003,Whole gut,0.633,3.6,M,0.562,500ul,36,E,12.2,NA
+DG_001,Intestinal content,1.022,4.1,F,0.747,500ul,36,E,31.8,pregnant female
+DG_002,Intestinal content,0.437,3.5,M,0.373,500ul,36,E,17.6,spotted phenotype
+DG_003,Intestinal content,0.405,3.3,M,0.351,500ul,36,E,39.6,NA
+DG_004,Intestinal content,0.735,3.7,F,0.561,500ul,37,E,4.64,Very nice dissection
+SZ_001,Squeezed gut,0.53,3.6,M,NA(490 post_squeeze),500ul,36,E,49.8,"The fish deflate when sequeezed(applies to all, single squeezed)"
+SZ_002,Squeezed gut,0.484,3.4,M,NA,500ul,36,E,11.8,"The fish deflate when sequeezed(applies to all, single squeezed)"
+SZ_003,Squeezed gut,0.675,3.7,F,NA,500ul,36,E,5.7,2 lovely poops
+PW_001,Feces,NA,NA,NA,NA,500ul,36,S/E,3.68,NA
+PW_002,Feces,NA,NA,NA,NA,500ul,36,S/E,5.28,NA
+PW_003,Feces,NA,NA,NA,NA,500ul,36,S/E,9.96,NA
+W_001,Water,NA,NA,NA,NA,500ul,36,E,0.19,NA
+W_002,Water,NA,NA,NA,NA,500ul,36,S,0.11,NA
+W_003,Water,NA,NA,NA,NA,500ul,36,E,0.44,NA
+SB_001,Shield blank,NA,NA,NA,NA,500ul,36,NA,0,NA
+SB_002,Shield blank,NA,NA,NA,NA,500ul,36,NA,NA,NA
+SB_003,Shield blank,NA,NA,NA,NA,500ul,36,NA,NA,NA
+PCR_CNTRL,PCR control,NA,NA,NA,NA,NA,NA,NA,NA,
