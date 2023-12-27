@@ -1,0 +1,42 @@
+bins	total_length	num_contigs	N50	GC_content	percent_completion	percent_redundancy	t_domain	t_phylum	t_class	t_order	t_family	t_genus	t_species
+DG_ZS_MAG_00001	2923418	21	258928	47.137390502461606	100.0	0.0	Bacteria	Proteobacteria	Gammaproteobacteria	Enterobacterales	Vibrionaceae	Vibrio	
+DG_ZS_MAG_00003	3590717	245	24994	50.921260559461636	100.0	2.816901408450704	Bacteria	Proteobacteria	Gammaproteobacteria	Enterobacterales	Enterobacteriaceae	Plesiomonas	Plesiomonas shigelloides
+DG_ZS_MAG_00008	3569239	240	35742	28.63294260896797	67.6056338028169	4.225352112676056	Bacteria	Fusobacteriota	Fusobacteriia	Fusobacteriales	Fusobacteriaceae	Cetobacterium	Cetobacterium somerae
+PW_ZS_MAG_00001	2850377	41	120572	66.63987442740971	100.0	0.0							
+PW_ZS_MAG_00003	3851092	57	132311	63.853777406357636	100.0	1.408450704225352	Bacteria	Proteobacteria	Alphaproteobacteria	Rhodobacterales	Rhodobacteraceae	Gemmobacter	Gemmobacter aquaticus
+PW_ZS_MAG_00004	5285224	85	94873	69.24325188978612	100.0	2.816901408450704	Bacteria	Proteobacteria	Gammaproteobacteria	Burkholderiales	Burkholderiaceae	Ideonella	Ideonella sp010499455
+PW_ZS_MAG_00008	1906175	66	44189	37.89924758170666	98.59154929577464	4.225352112676056	Bacteria	Firmicutes	Bacilli	ZOR0006	ZOR0006	ZOR0006	ZOR0006 sp000798955
+PW_ZS_MAG_00011	5914365	393	20133	70.34173664244464	95.77464788732394	4.225352112676056	Bacteria	Actinobacteriota	Actinomycetia	Mycobacteriales	Mycobacteriaceae	Nocardia	
+PW_ZS_MAG_00014	3774763	399	15340	31.91910413647857	85.91549295774648	0.0	Bacteria	Bacteroidota	Bacteroidia	Flavobacteriales	Flavobacteriaceae	Flavobacterium	Flavobacterium sp004959765
+PW_ZS_MAG_00015	3693825	161	32511	68.0403990831624	74.64788732394366	0.0	Bacteria	Proteobacteria	Gammaproteobacteria	Xanthomonadales	Xanthomonadaceae	Pseudoxanthomonas	
+PW_ZS_MAG_00017	6630491	319	32325	65.92963891290042	64.78873239436619	4.225352112676056	Bacteria	Actinobacteriota	Actinomycetia	Mycobacteriales	Mycobacteriaceae	Mycobacterium	
+PW_ZS_MAG_00018	4410317	1505	3588	67.1156729245005	64.78873239436619	4.225352112676056	Bacteria	Proteobacteria	Alphaproteobacteria	Rhizobiales	Beijerinckiaceae	Bosea	
+PW_ZS_MAG_00019	6713076	324	30718	66.09134488582997	61.971830985915496	4.225352112676056	Bacteria	Actinobacteriota	Actinomycetia	Mycobacteriales	Mycobacteriaceae	Mycobacterium	
+PW_ZS_MAG_00020	4232592	27	317622	64.50662568531878	57.74647887323944	0.0	Bacteria	Proteobacteria	Gammaproteobacteria	Pseudomonadales	Pseudomonadaceae	Pseudomonas	
+SZ_ZS_MAG_00001	4616698	88	118930	57.8804005240509	100.0	0.0	Bacteria	Proteobacteria	Gammaproteobacteria	Enterobacterales	Aeromonadaceae	Aeromonas	
+SZ_ZS_MAG_00004	2821642	38	136332	68.66194039929665	100.0	1.408450704225352	Bacteria	Proteobacteria	Alphaproteobacteria	Sphingomonadales	Sphingomonadaceae	Sandaracinobacter	
+SZ_ZS_MAG_00008	3930953	56	105532	40.525290286354846	95.77464788732394	2.816901408450704	Bacteria	Bacteroidota	Bacteroidia	Bacteroidales	Tannerellaceae	UBA12018	UBA12018 sp003447595
+SZ_ZS_MAG_00009	2872775	42	147768	39.16111871745971	92.95774647887323	1.408450704225352	Bacteria	Bacteroidota	Bacteroidia	Bacteroidales	UBA7332	UBA7332	UBA7332 sp002471225
+SZ_ZS_MAG_00010	3557364	32	250831	60.494617686609686	92.95774647887323	1.408450704225352	Bacteria	Proteobacteria	Gammaproteobacteria	Burkholderiales	Chitinibacteraceae	Chitinilyticum	Chitinilyticum aquatile
+SZ_ZS_MAG_00011	2629644	276	12984	67.3130012713511	91.54929577464789	2.816901408450704	Bacteria	Proteobacteria	Gammaproteobacteria	Burkholderiales	Chromobacteriaceae	STGJ01	
+SZ_ZS_MAG_00013	2528042	201	19846	64.56347743762385	84.50704225352112	4.225352112676056	Bacteria	Proteobacteria	Gammaproteobacteria	Burkholderiales			
+SZ_ZS_MAG_00014	3821997	255	21436	68.10389098017879	74.64788732394366	1.408450704225352	Bacteria	Proteobacteria	Gammaproteobacteria	Burkholderiales	Burkholderiaceae	Kinneretia	Kinneretia asaccharophila
+SZ_ZS_MAG_00016	3885978	83	74631	39.10528327871739	59.15492957746479	4.225352112676056	Bacteria	Bacteroidota	Bacteroidia	Bacteroidales	UBA7332	UBA7332	UBA7332 sp002471225
+WG_ZS_MAG_00001	2113985	59	72242	30.498605995755145	97.1830985915493	0.0	Bacteria	Fusobacteriota	Fusobacteriia	Fusobacteriales	Fusobacteriaceae	Cetobacterium	Cetobacterium sp000799075
+W_ZS_MAG_00002	5512798	194	46447	37.26867169846806	98.59154929577464	0.0							
+W_ZS_MAG_00003	4428096	105	76200	54.7800173320592	98.59154929577464	0.0	Bacteria	Nitrospirota	Nitrospiria	Nitrospirales	Nitrospiraceae	Nitrospira	
+W_ZS_MAG_00007	10044924	78	351283	69.50733743940019	98.59154929577464	2.816901408450704	Bacteria	Myxococcota	Polyangia	Nannocystales	Nannocystaceae	Ga0077550	Ga0077550 sp001464385
+W_ZS_MAG_00008	6772131	70	197205	70.25252636583527	98.59154929577464	4.225352112676056	Bacteria	Planctomycetota	UBA1135	UBA2386	UBA2386	UBA2386	UBA2386 sp005776475
+W_ZS_MAG_00012	6002858	575	20088	61.09217307937943	97.1830985915493	7.042253521126761	Bacteria	Proteobacteria	Gammaproteobacteria	Burkholderiales			
+W_ZS_MAG_00013	3514539	99	94184	37.3313274986217	94.36619718309859	4.225352112676056	Bacteria	Bacteroidota	Bacteroidia	Bacteroidales	UBA7332	UBA7332	UBA7332 sp002471225
+W_ZS_MAG_00014	2813315	100	45457	65.58913932353933	90.14084507042253	0.0	Bacteria	Proteobacteria	Alphaproteobacteria	Rhodobacterales	Rhodobacteraceae	Albidovulum	Albidovulum sp008933605
+W_ZS_MAG_00015	4828087	236	183115	60.651617353081555	98.59154929577464	9.859154929577464	Bacteria	Proteobacteria	Alphaproteobacteria	Sphingomonadales	Sphingomonadaceae	Sphingomonas	
+W_ZS_MAG_00016	6123404	169	66454	69.06761886606027	90.14084507042253	2.816901408450704	Bacteria	Planctomycetota	UBA1135	UBA1135	GCA-002686595	WYBT01	WYBT01 sp011525785
+W_ZS_MAG_00017	3909312	1159	3900	42.0861364039996	88.73239436619718	2.816901408450704	Bacteria	Bacteroidota	Bacteroidia	Cytophagales	Cyclobacteriaceae	ELB16-189	ELB16-189 sp002352225
+W_ZS_MAG_00018	7502647	493	22951	51.52406625477306	85.91549295774648	1.408450704225352	Bacteria	Planctomycetota	Planctomycetes	Pirellulales	Pirellulaceae	Pirellula	Pirellula sp903892365
+W_ZS_MAG_00020	7317349	2774	3047	61.46062142649251	85.91549295774648	7.042253521126761							
+W_ZS_MAG_00022	3738323	1450	2829	48.44783141411787	77.46478873239437	2.816901408450704	Bacteria	Bacteroidota	Bacteroidia	Cytophagales	Cyclobacteriaceae		
+W_ZS_MAG_00023	3274180	945	3960	54.707070721327234	74.64788732394366	4.225352112676056	Bacteria	Nitrospirota	Nitrospiria	Nitrospirales	Nitrospiraceae	Nitrospira	
+W_ZS_MAG_00024	4079313	1728	2586	49.2534019469862	69.01408450704226	2.816901408450704	Bacteria	Cyanobacteria	Vampirovibrionia	Obscuribacterales	Obscuribacteraceae	Obscuribacter	Obscuribacter phosphatis
+W_ZS_MAG_00026	2274690	914	2823	47.327680379842	60.563380281690144	4.225352112676056	Bacteria	Proteobacteria	Gammaproteobacteria	Pseudomonadales	Moraxellaceae	Alkanindiges	Alkanindiges sp001982605
+W_ZS_MAG_00027	3155463	851	4670	68.2833249101018	59.15492957746479	2.816901408450704	Bacteria	Proteobacteria	Alphaproteobacteria	Rhodobacterales	Rhodobacteraceae	Paracoccus	Paracoccus marcusii
